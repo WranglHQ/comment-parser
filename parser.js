@@ -1,4 +1,3 @@
-
 'use strict'
 
 const PARSERS = require('./parsers')
@@ -9,7 +8,7 @@ const MARKER_END = '*/'
 
 /* ------- util functions ------- */
 
-function find (list, filter) {
+function find(list, filter) {
   let i = list.length
   let matchs = true
 
@@ -32,7 +31,7 @@ function find (list, filter) {
  * @param {Array<function>} parsers Array of parsers to be applied to the source
  * @returns {object} parsed tag node
  */
-function parse_tag (str, parsers) {
+function parse_tag(str, parsers) {
   const data = parsers.reduce(function (state, parser) {
     let result
 
@@ -65,7 +64,7 @@ function parse_tag (str, parsers) {
 /**
  * Parses comment block (array of String lines)
  */
-function parse_block (source, opts) {
+function parse_block(source, opts) {
   const trim = opts.trim
     ? s => s.trim()
     : s => s
@@ -94,11 +93,11 @@ function parse_block (source, opts) {
           source: [line.source],
           line: line.number
         })
-      // keep appending source to the current tag
+        // keep appending source to the current tag
       } else {
         const tag = state.tags[state.tags.length - 1]
         if (opts.join !== undefined && opts.join !== false && opts.join !== 0 &&
-            !line.startWithStar && tag.source.length > 0) {
+          !line.startWithStar && tag.source.length > 0) {
           let source
           if (typeof opts.join === 'string') {
             source = opts.join + line.source.replace(/^\s+/, '')
@@ -188,7 +187,7 @@ function parse_block (source, opts) {
 /**
  * Produces `extract` function with internal state initialized
  */
-function mkextract (opts) {
+function mkextract(opts) {
   let chunk = null
   let indent = 0
   let number = 0
@@ -209,7 +208,7 @@ function mkextract (opts) {
    * Read lines until they make a block
    * Return parsed block once fullfilled or null otherwise
    */
-  return function extract (line) {
+  return function extract(line) {
     let result = null
     const startPos = line.indexOf(MARKER_START)
     const endPos = line.indexOf(MARKER_END)
@@ -264,7 +263,8 @@ function mkextract (opts) {
 
 /* ------- Public API ------- */
 
-module.exports = function parse (source, opts) {
+module.exports = function parse(source, opts) {
+  console.log('hi from comment-parser');
   const blocks = []
   const extract = mkextract(opts)
   const lines = source.split(/\n/)
@@ -275,6 +275,69 @@ module.exports = function parse (source, opts) {
       blocks.push(block)
     }
   })
+
+  //updates by stuart start here - supporting varargs and multiple types
+
+  // console.log('blocks:');
+  // console.log(blocks);
+
+  // const tags = blocks[0]
+
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const tags = block.tags;
+    console.log('######################################################################');
+
+    for (let k = 0; k < tags.length; k++) {
+      const tag = tags[k];
+      console.log(tag);
+      let type = tag.type.slice();
+
+      /* handle optional (by {string=} notation) */
+
+      if (type.endsWith('=')) {
+        type = type.slice(0, type.length - 1);
+        tag.optional = true;
+      }
+
+      /* handle varargs */
+
+      if (type.startsWith('...')) {
+        type = type.slice(3);
+        tag.varargs = true;
+      }
+
+      /* handle multiple types */
+
+      let types = [];
+      if (type && type.startsWith('(') && type.endsWith(')') && type.includes('|')) {
+        type = type.slice(1, type.length - 1);
+        types = type.split('|');
+      }
+      else {
+        types = [type];
+      }
+
+      /* handle array type (1st order bracket notation only) */
+
+      for (let q = 0; q < types.length; q++) {
+        let t = types[q];
+        if (t.endsWith('[]')) {
+          t = t.slice(0, t.length - 2);
+          t = 'Array<' + t + '>';
+        }
+        types[q] = t;
+      }
+
+      /* handle missing type (dont use empty string) */
+
+      let typesFound = types.find(t => t !== '');
+
+      if (typesFound) {
+        tag.types = types;
+      }
+    }
+  }
 
   return blocks
 }
