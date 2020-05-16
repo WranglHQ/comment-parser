@@ -347,7 +347,7 @@ module.exports = function parse(source, opts = {}) {
         let t = types[q];
         if (t.endsWith('[]')) {
           t = t.slice(0, t.length - 2);
-          t = 'Array\\<' + t + '>';
+          t = 'Array<' + t + '>';
         }
         types[q] = t;
       }
@@ -403,6 +403,13 @@ function getFormattedTypeString(tag) {
   return '<code>' + joined + '</code>';
 }
 
+/**
+ * has to know when to escape '<' (everything except <code> and </code> and <span></span>???)
+ * or ... only: <number, <string, <*, <col, <mat
+ * ... yeah just escape all these at the very end 
+ * @param {*} block 
+ * @param {*} opts 
+ */
 function toMarkdown(block, opts = {}) {
   const whitelist = opts.mdTagWhitelist;
   const descriptionTag = opts.mdDescriptionTag;
@@ -506,6 +513,21 @@ function toMarkdown(block, opts = {}) {
       md += `| ${t.formattedName} | ${typeString} |   ${desc} |\n`
     }
   })
+
+  //now escape definitely-not-html things lke:
+  //  <number, <string, <*, <col, <matr
+  //  <Number, <String, <*, <Col, <Matr
+
+  md = md.replace(/<num/g, '\\<num');
+  md = md.replace(/<string/g, '\\<string');
+  md = md.replace(/<\*/g, '\\<*');
+  md = md.replace(/<col/g, '\\<col');
+  md = md.replace(/<matr/g, '\\<matr');
+  md = md.replace(/<Number/g, '\\<Number');
+  md = md.replace(/<String/g, '\\<String');
+  md = md.replace(/<Col/g, '\\<Col');
+  md = md.replace(/<Matr/g, '\\<Matr');
+  md = md.replace(/<num/g, '\\<num');
   return md;
 
 }
