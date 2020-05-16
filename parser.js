@@ -295,10 +295,16 @@ module.exports = function parse(source, opts = {}) {
     const tags = block.tags;
     console.log('######################################################################');
 
+    tags.forEach(t => {
+      const singleValue = t.name.trim() + ' ' + t.description.trim();
+      t.singleValue = singleValue.trim();
+    });
+
     for (let k = 0; k < tags.length; k++) {
       const tag = tags[k];
       console.log(tag);
       let type = tag.type.slice();
+
 
 
       /* removing leading hyphen in descriptions */
