@@ -452,12 +452,15 @@ function toMarkdown(block, opts = {}) {
 
   /* now append the description */
 
-  let description = block.description;
+  let description = '';
   if (descriptionTag) {
     let descriptionTagObj = tags.find(t => t.tag === 'description');
     if (descriptionTagObj) {
       description = descriptionTagObj.name + ' ' + descriptionTagObj.description;
     }
+  }
+  else {
+    description = block.description;
   }
   md += description + '\n\n';
 
@@ -491,7 +494,7 @@ function toMarkdown(block, opts = {}) {
   params.forEach(t => {
     const typeString = getFormattedTypeString(t);
     let defaultStr = t.default ? t.default : '';
-    if (defaultStr){
+    if (defaultStr) {
       defaultStr = `<code>${defaultStr}</code>`
     }
     const desc = t.description ? t.description : '';
