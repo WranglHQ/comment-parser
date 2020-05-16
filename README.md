@@ -1,3 +1,14 @@
+
+changed from the original source
+
+now returns an object containing:
+- parsed jsdoc data
+- markdown array
+
+also new opts values like tag whitelist, submitting description as a tag, inputting loose tags instead of actual jsdoc
+
+---
+
 # comment-parser
 
 Generic JSDoc-like comment parser. This library is not intended to be documentation generator, but rather composite unit for it.
