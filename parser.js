@@ -487,7 +487,10 @@ function toMarkdown(block, opts = {}) {
 
   params.forEach(t => {
     const typeString = getFormattedTypeString(t);
-    const defaultStr = t.default ? t.default : '';
+    let defaultStr = t.default ? t.default : '';
+    if (defaultStr){
+      defaultStr = `<code>${defaultStr}</code>`
+    }
     const desc = t.description ? t.description : '';
 
     if (hasDefault) {
