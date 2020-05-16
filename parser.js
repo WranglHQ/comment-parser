@@ -1,3 +1,4 @@
+
 'use strict'
 
 const PARSERS = require('./parsers')
@@ -263,8 +264,14 @@ function mkextract(opts) {
 
 /* ------- Public API ------- */
 
-module.exports = function parse(source, opts) {
-  console.log('hi from comment-parser');
+module.exports = function parse(source, opts = {}) {
+  if (opts.inputLooseTags) {
+    let lines = source.split('\n');
+    source = '/**\n';
+    lines.forEach(l => source += ` * ${l}\n`);
+    source += '*/\n';
+  }
+  console.log('what up from comment-parser !!!!');
   const blocks = []
   const extract = mkextract(opts)
   const lines = source.split(/\n/)
@@ -292,6 +299,13 @@ module.exports = function parse(source, opts) {
       const tag = tags[k];
       console.log(tag);
       let type = tag.type.slice();
+
+
+      /* removing leading hyphen in descriptions */
+
+      if (tag.description && tag.description.startsWith('- ')) {
+        tag.description = tag.description.slice(2)
+      }
 
       /* handle optional (by {string=} notation) */
 
@@ -324,12 +338,12 @@ module.exports = function parse(source, opts) {
         let t = types[q];
         if (t.endsWith('[]')) {
           t = t.slice(0, t.length - 2);
-          t = 'Array<' + t + '>';
+          t = 'Array\\<' + t + '>';
         }
         types[q] = t;
       }
 
-      /* handle missing type (dont use empty string) */
+      // /* handle missing type (dont use empty string) */
 
       let typesFound = types.find(t => t !== '');
 
@@ -338,8 +352,147 @@ module.exports = function parse(source, opts) {
       }
     }
   }
+  let response = {};
+  response.blocks = blocks;
+  response.markdowns = blocks.map(b => toMarkdown(b, opts));
+  return response;
+}
 
-  return blocks
+// function addFormattedSigParams(tags) {
+//   const paramStrs = tags
+//   tags = tags
+//     .filter(t => t.tag === "param")
+//     .map(t => {
+//       let str = t.name;
+//       if (t.varargs) { str = '...' + str; }
+//       else if (t.optional) { str = '?' + str }
+//       return str;
+//     });
+// }
+
+function addFormattedSigParams(tags) {
+  tags = tags.map(t => {
+    if (t.tag === "param") {
+      let str = t.name;
+      if (t.varargs) { str = '...' + str; }
+      else if (t.optional) { str = '?' + str }
+      t.formattedName = str;
+    }
+    return t;
+  });
+  return tags;
+}
+
+function getFormattedTypeString(tag) {
+  // "types": [
+  //   "string",
+  //   "Array<string>"
+  // ],
+
+  if (tag.types === undefined) return '';
+  const joined = tag.types.join("</code> \\| <code>");
+  return '<code>' + joined + '</code>';
+}
+
+function toMarkdown(block, opts = {}) {
+  const whitelist = opts.mdTagWhitelist;
+  const descriptionTag = opts.mdDescriptionTag;
+  const functionNameTag = opts.mdFunctionNameTag;
+  // asdfff;
+  let tags = block.tags;
+  tags = addFormattedSigParams(tags);
+
+  if (!tags) {
+    return '';
+  }
+
+  const returnTag = tags.find(t => t.tag === 'returns');
+  console.log(returnTag);
+  const returnType = returnTag && returnTag.types && returnTag.types[0];
+
+  let md = '';
+
+  // first generate the signature, like:
+  // ## protection(cloak, dagger) ⇒ <code>returnType</code>
+  if (functionNameTag) {
+    let functionNameObjectFound = tags.find(t => t.tag === functionNameTag);
+    let functionName = functionNameObjectFound && functionNameObjectFound.name;
+    if (functionName) {
+      const formattedSigParams = tags.filter(t => t.formattedName).map(t => t.formattedName);
+      let sig;
+      sig = `## ${functionName} (`;
+      formattedSigParams.forEach(p => sig = `${sig}${p}, `);
+      sig = sig.slice(0, sig.length - 2) + ')';
+      if (returnType) {
+        sig += ` ⇒ <code>${returnType}</code>`;
+      }
+      md += sig + '\n\n';
+    }
+  }
+
+  /* now append the synopsis */
+
+  const synopsisObj = tags.find(t => t.tag === 'synopsis');
+  if (synopsisObj) {
+    const synopsis = synopsisObj.name + ' ' + synopsisObj.description;
+
+    md += `<span id="mdSynopsis">${synopsis}</span>`
+
+    md += '\n\n';
+  }
+
+  /* now append the description */
+
+  let description = block.description;
+  if (descriptionTag) {
+    let descriptionTagObj = tags.find(t => t.tag === 'description');
+    if (descriptionTagObj) {
+      description = descriptionTagObj.name + ' ' + descriptionTagObj.description;
+    }
+  }
+  md += description + '\n\n';
+
+
+
+  /* now for the params chart */
+
+  /*
+  | Param  | Type                | Description  |
+  | ------ | ------------------- | ------------ |
+  | cloak  | <code>object</code> | privacy gown |
+  | dagger | <code>object</code> | security     |
+  */
+
+
+  let hasDefault = tags.find(t => t.default);
+  // let 
+  let header = hasDefault ?
+    `
+| Param  | Type    | Default | Description  |
+| ------ | --------| ------- | ------------ |`
+    :
+    `
+| Param  | Type    | Description  |
+| ------ | --------| ------------ |`;
+
+  md += header + '\n';
+
+  const params = tags.filter(t => t.tag === "param");
+
+  params.forEach(t => {
+    const typeString = getFormattedTypeString(t);
+    const defaultStr = t.default ? t.default : '';
+    const desc = t.description ? t.description : '';
+
+    if (hasDefault) {
+      md += `| ${t.formattedName} | ${typeString} | ${defaultStr} |  ${desc} |\n`
+    }
+    else {
+      md += `| ${t.formattedName} | ${typeString} |   ${desc} |\n`
+    }
+  })
+  return md;
+
 }
 
 module.exports.PARSERS = PARSERS
