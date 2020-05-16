@@ -265,6 +265,9 @@ function mkextract(opts) {
 /* ------- Public API ------- */
 
 module.exports = function parse(source, opts = {}) {
+  source = source.replace('@name', '\n@name');
+  source = source.replace('@synopsis', '\n@synopsis');
+  source = source.replace('@description', '\n@description');
   if (opts.inputLooseTags) {
     let lines = source.split('\n');
     source = '/**\n';
