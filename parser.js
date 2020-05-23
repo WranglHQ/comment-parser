@@ -274,7 +274,7 @@ module.exports = function parse(source, opts = {}) {
     lines.forEach(l => source += ` * ${l}\n`);
     source += '*/\n';
   }
-  console.log('what up from comment-parser !!!!');
+  // console.log('what up from comment-parser !!!!');
   const blocks = []
   const extract = mkextract(opts)
   const lines = source.split(/\n/)
@@ -296,7 +296,7 @@ module.exports = function parse(source, opts = {}) {
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
     const tags = block.tags;
-    console.log('######################################################################');
+    // console.log('######################################################################');
 
     tags.forEach(t => {
       const singleValue = t.name.trim() + ' ' + t.description.trim();
@@ -305,7 +305,7 @@ module.exports = function parse(source, opts = {}) {
 
     for (let k = 0; k < tags.length; k++) {
       const tag = tags[k];
-      console.log(tag);
+      // console.log(tag);
       let type = tag.type.slice();
 
 
@@ -423,7 +423,7 @@ function toMarkdown(block, opts = {}) {
   }
 
   const returnTag = tags.find(t => t.tag === 'returns');
-  console.log(returnTag);
+  // console.log(returnTag);
   const returnType = returnTag && returnTag.types && returnTag.types[0];
 
   let md = '';
