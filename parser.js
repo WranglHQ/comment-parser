@@ -363,7 +363,8 @@ module.exports = function parse(source, opts = {}) {
   }
   let response = {};
   response.blocks = blocks;
-  response.markdowns = blocks.map(b => toMarkdown(b, opts));
+  response.markdowns = blocks.map(b => toMarkdown(b, opts).md);
+  response.markdownCharts = blocks.map(b => toMarkdown(b, opts).mdChart);
   return response;
 }
 
@@ -472,6 +473,7 @@ function toMarkdown(block, opts = {}) {
   md += description + '\n\n';
 
 
+  let mdChart = '';
 
   /* now for the params chart */
 
@@ -494,7 +496,7 @@ function toMarkdown(block, opts = {}) {
 | Param  | Type    | Description  |
 | ------ | --------| ------------ |`;
 
-  md += header + '\n';
+  mdChart += header + '\n';
 
   const params = tags.filter(t => t.tag === "param");
 
@@ -507,10 +509,10 @@ function toMarkdown(block, opts = {}) {
     const desc = t.description ? t.description : '';
 
     if (hasDefault) {
-      md += `| ${t.formattedName} | ${typeString} | ${defaultStr} |  ${desc} |\n`
+      mdChart += `| ${t.formattedName} | ${typeString} | ${defaultStr} |  ${desc} |\n`
     }
     else {
-      md += `| ${t.formattedName} | ${typeString} |   ${desc} |\n`
+      mdChart += `| ${t.formattedName} | ${typeString} |   ${desc} |\n`
     }
   })
 
@@ -518,17 +520,18 @@ function toMarkdown(block, opts = {}) {
   //  <number, <string, <*, <col, <matr
   //  <Number, <String, <*, <Col, <Matr
 
-  md = md.replace(/<num/g, '\\<num');
-  md = md.replace(/<string/g, '\\<string');
-  md = md.replace(/<\*/g, '\\<*');
-  md = md.replace(/<col/g, '\\<col');
-  md = md.replace(/<matr/g, '\\<matr');
-  md = md.replace(/<Number/g, '\\<Number');
-  md = md.replace(/<String/g, '\\<String');
-  md = md.replace(/<Col/g, '\\<Col');
-  md = md.replace(/<Matr/g, '\\<Matr');
-  md = md.replace(/<num/g, '\\<num');
-  return md;
+  mdChart = mdChart.replace(/<num/g, '\\<num');
+  mdChart = mdChart.replace(/<string/g, '\\<string');
+  mdChart = mdChart.replace(/<\*/g, '\\<*');
+  mdChart = mdChart.replace(/<col/g, '\\<col');
+  mdChart = mdChart.replace(/<matr/g, '\\<matr');
+  mdChart = mdChart.replace(/<Number/g, '\\<Number');
+  mdChart = mdChart.replace(/<String/g, '\\<String');
+  mdChart = mdChart.replace(/<Col/g, '\\<Col');
+  mdChart = mdChart.replace(/<Matr/g, '\\<Matr');
+  mdChart = mdChart.replace(/<num/g, '\\<num');
+  md += mdChart;
+  return { md, mdChart };
 
 }
 
