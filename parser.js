@@ -1,6 +1,7 @@
 
 'use strict'
-
+var mdescape = require('markdown-escape')
+var assert = require('assert')
 const PARSERS = require('./parsers')
 
 const MARKER_START = '/**'
@@ -401,7 +402,7 @@ function getFormattedTypeString(tag) {
 
   if (tag.types === undefined) return '';
   const joined = tag.types
-    .map(t => escape(t))
+    .map(t => mdescape(t))
     .join("</code> \\| <code>");                //\\ is to escape markdown
   return '<code>' + joined + '</code>';
 }
