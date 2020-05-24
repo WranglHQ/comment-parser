@@ -400,7 +400,9 @@ function getFormattedTypeString(tag) {
   // ],
 
   if (tag.types === undefined) return '';
-  const joined = tag.types.join("</code> \\| <code>");
+  const joined = tag.types
+    .map(t => escape(t))
+    .join("</code> \\| <code>");                //\\ is to escape markdown
   return '<code>' + joined + '</code>';
 }
 
@@ -520,16 +522,18 @@ function toMarkdown(block, opts = {}) {
   //  <number, <string, <*, <col, <matr
   //  <Number, <String, <*, <Col, <Matr
 
-  mdChart = mdChart.replace(/<num/g, '\\<num');
-  mdChart = mdChart.replace(/<string/g, '\\<string');
-  mdChart = mdChart.replace(/<\*/g, '\\<*');
-  mdChart = mdChart.replace(/<col/g, '\\<col');
-  mdChart = mdChart.replace(/<matr/g, '\\<matr');
-  mdChart = mdChart.replace(/<Number/g, '\\<Number');
-  mdChart = mdChart.replace(/<String/g, '\\<String');
-  mdChart = mdChart.replace(/<Col/g, '\\<Col');
-  mdChart = mdChart.replace(/<Matr/g, '\\<Matr');
-  mdChart = mdChart.replace(/<num/g, '\\<num');
+  //uh... this isn't how u escape html ... 
+
+  // mdChart = mdChart.replace(/<num/g, '\\<num');
+  // mdChart = mdChart.replace(/<string/g, '\\<string');
+  // mdChart = mdChart.replace(/<\*/g, '\\<*');
+  // mdChart = mdChart.replace(/<col/g, '\\<col');
+  // mdChart = mdChart.replace(/<matr/g, '\\<matr');
+  // mdChart = mdChart.replace(/<Number/g, '\\<Number');
+  // mdChart = mdChart.replace(/<String/g, '\\<String');
+  // mdChart = mdChart.replace(/<Col/g, '\\<Col');
+  // mdChart = mdChart.replace(/<Matr/g, '\\<Matr');
+  // mdChart = mdChart.replace(/<num/g, '\\<num');
   md += mdChart;
   return { md, mdChart };
 
