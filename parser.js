@@ -450,16 +450,16 @@ function toMarkdown(block, opts = {}) {
     }
   }
 
-  /* now append the synopsis */
+  // /* now append the synopsis */
 
-  const synopsisObj = tags.find(t => t.tag === 'synopsis');
-  if (synopsisObj) {
-    const synopsis = synopsisObj.name + ' ' + synopsisObj.description;
+  // const synopsisObj = tags.find(t => t.tag === 'synopsis');
+  // if (synopsisObj) {
+  //   const synopsis = synopsisObj.name + ' ' + synopsisObj.description;
 
-    md += `<span id="mdSynopsis">${synopsis}</span>`
+  //   md += `<span id="mdSynopsis">${synopsis}</span>`
 
-    md += '\n\n';
-  }
+  //   md += '\n\n';
+  // }
 
   /* now append the description */
 
@@ -535,7 +535,13 @@ function toMarkdown(block, opts = {}) {
   // mdChart = mdChart.replace(/<Col/g, '\\<Col');
   // mdChart = mdChart.replace(/<Matr/g, '\\<Matr');
   // mdChart = mdChart.replace(/<num/g, '\\<num');
-  md += mdChart;
+  md += mdChart + '\n\n';
+
+  // now add returns line at bottom
+  if (returnTag) {
+    const returnsLine = `**returns** <code>${returnType ? returnType : ''}</code> ${returnTag ? returnTag.description : ''}`
+    md += returnsLine + '\n';
+  }
   return { md, mdChart };
 
 }
