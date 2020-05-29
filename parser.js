@@ -3,6 +3,8 @@
 var mdescape = require('markdown-escape')
 var assert = require('assert')
 const PARSERS = require('./parsers')
+var sentenceSplitter = require("sentence-splitter")
+const out = console.log
 
 const MARKER_START = '/**'
 const MARKER_START_SKIP = '/***'
@@ -266,16 +268,39 @@ function mkextract(opts) {
 /* ------- Public API ------- */
 
 module.exports = function parse(source, opts = {}) {
-  source = source.replace('@name', '\n@name');
-  source = source.replace('@synopsis', '\n@synopsis');
-  source = source.replace('@description', '\n@description');
-  if (opts.inputLooseTags) {
-    let lines = source.split('\n');
-    source = '/**\n';
-    lines.forEach(l => source += ` * ${l}\n`);
-    source += '*/\n';
+
+  if (opts.wrangl) {  //TODO - remove all custom opts except for "wrangl"
+
+    source = source.trim();
+    if (opts.wrangl2) {
+      //no more "@name" and @synopsis tag.  naem from frist line, synopsis from first sentence of description.
+      //first word of comment is app name
+      let name = source.split(/\s+/)[0];
+      source = source.replace(name, '');
+
+      //now get first sentence - make it the synopsis
+      // out('sentenceSplitter.split(source.trim())')
+      // out(sentenceSplitter.split(source.trim()))
+      let synopsis = sentenceSplitter.split(source.trim())[0].raw
+      source = '@description ' + source;
+      source = `@synopsis ${synopsis}\n` + source;
+      source = `@name ${name}\n` + source;
+
+    }
+
+    source = source.replace('@name', '\n@name');
+    source = source.replace('@synopsis', '\n@synopsis');
+    source = source.replace('@description', '\n@description');
+
+    if (opts.inputLooseTags) {
+      let lines = source.split('\n');
+      source = '/**\n';
+      lines.forEach(l => source += ` * ${l}\n`);
+      source += '*/\n';
+
+    }
+    // console.log('what up from comment-parser !!!!');
   }
-  // console.log('what up from comment-parser !!!!');
   const blocks = []
   const extract = mkextract(opts)
   const lines = source.split(/\n/)
@@ -286,87 +311,90 @@ module.exports = function parse(source, opts = {}) {
       blocks.push(block)
     }
   })
+  if (!opts.wrangl) {
+    return blocks;
+  } else {
+    //updates by stuart start here - supporting varargs and multiple types
 
-  //updates by stuart start here - supporting varargs and multiple types
+    // console.log('asdfawefawef blocks:');
+    // console.log(blocks);
 
-  console.log('asdfawefawef blocks:');
-  console.log(blocks);
+    // const tags = blocks[0]
 
-  // const tags = blocks[0]
+    for (let i = 0; i < blocks.length; i++) {
+      const block = blocks[i];
+      const tags = block.tags;
+      // console.log('######################################################################');
 
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i];
-    const tags = block.tags;
-    // console.log('######################################################################');
+      tags.forEach(t => {
+        const singleValue = t.name.trim() + ' ' + t.description.trim();
+        t.singleValue = singleValue.trim();
+      });
 
-    tags.forEach(t => {
-      const singleValue = t.name.trim() + ' ' + t.description.trim();
-      t.singleValue = singleValue.trim();
-    });
-
-    for (let k = 0; k < tags.length; k++) {
-      const tag = tags[k];
-      // console.log(tag);
-      let type = tag.type.slice();
+      for (let k = 0; k < tags.length; k++) {
+        const tag = tags[k];
+        // console.log(tag);
+        let type = tag.type.slice();
 
 
 
-      /* removing leading hyphen in descriptions */
+        /* removing leading hyphen in descriptions */
 
-      if (tag.description && tag.description.startsWith('- ')) {
-        tag.description = tag.description.slice(2)
-      }
-
-      /* handle optional (by {string=} notation) */
-
-      if (type.endsWith('=')) {
-        type = type.slice(0, type.length - 1);
-        tag.optional = true;
-      }
-
-      /* handle varargs */
-
-      if (type.startsWith('...')) {
-        type = type.slice(3);
-        tag.varargs = true;
-      }
-
-      /* handle multiple types */
-
-      let types = [];
-      if (type && type.startsWith('(') && type.endsWith(')') && type.includes('|')) {
-        type = type.slice(1, type.length - 1);
-        types = type.split('|');
-      }
-      else {
-        types = [type];
-      }
-
-      /* handle array type (1st order bracket notation only) */
-
-      for (let q = 0; q < types.length; q++) {
-        let t = types[q];
-        if (t.endsWith('[]')) {
-          t = t.slice(0, t.length - 2);
-          t = 'Array<' + t + '>';
+        if (tag.description && tag.description.startsWith('- ')) {
+          tag.description = tag.description.slice(2)
         }
-        types[q] = t;
-      }
 
-      // /* handle missing type (dont use empty string) */
+        /* handle optional (by {string=} notation) */
 
-      let typesFound = types.find(t => t !== '');
+        if (type.endsWith('=')) {
+          type = type.slice(0, type.length - 1);
+          tag.optional = true;
+        }
 
-      if (typesFound) {
-        tag.types = types;
+        /* handle varargs */
+
+        if (type.startsWith('...')) {
+          type = type.slice(3);
+          tag.varargs = true;
+        }
+
+        /* handle multiple types */
+
+        let types = [];
+        if (type && type.startsWith('(') && type.endsWith(')') && type.includes('|')) {
+          type = type.slice(1, type.length - 1);
+          types = type.split('|');
+        }
+        else {
+          types = [type];
+        }
+
+        /* handle array type (1st order bracket notation only) */
+
+        for (let q = 0; q < types.length; q++) {
+          let t = types[q];
+          if (t.endsWith('[]')) {
+            t = t.slice(0, t.length - 2);
+            t = 'Array<' + t + '>';
+          }
+          types[q] = t;
+        }
+
+        // /* handle missing type (dont use empty string) */
+
+        let typesFound = types.find(t => t !== '');
+
+        if (typesFound) {
+          tag.types = types;
+        }
       }
     }
+    let response = {};
+    response.blocks = blocks;
+    response.markdowns = blocks.map(b => toMarkdown(b, opts).md);
+    response.markdownCharts = blocks.map(b => toMarkdown(b, opts).mdChart);
+    return response;
   }
-  let response = {};
-  response.blocks = blocks;
-  response.markdowns = blocks.map(b => toMarkdown(b, opts).md);
-  response.markdownCharts = blocks.map(b => toMarkdown(b, opts).mdChart);
-  return response;
 }
 
 
