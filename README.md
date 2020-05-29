@@ -7,6 +7,8 @@ now returns an object containing:
 
 also new opts values like tag whitelist, submitting description as a tag, inputting loose tags instead of actual jsdoc
 
+stuarttest.js to dev
+
 ---
 
 # comment-parser

@@ -289,8 +289,8 @@ module.exports = function parse(source, opts = {}) {
 
   //updates by stuart start here - supporting varargs and multiple types
 
-  // console.log('blocks:');
-  // console.log(blocks);
+  console.log('asdfawefawef blocks:');
+  console.log(blocks);
 
   // const tags = blocks[0]
 
@@ -369,6 +369,8 @@ module.exports = function parse(source, opts = {}) {
   return response;
 }
 
+
+// function getMarkdownParamsAndReturnChart
 // function addFormattedSigParams(tags) {
 //   const paramStrs = tags
 //   tags = tags
