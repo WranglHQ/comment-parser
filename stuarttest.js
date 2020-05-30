@@ -44,9 +44,13 @@ const body2 = `
 
 @return {Matrix} The created matrix`;
 
+const b3 = `hello_world 
+a nice example
+@param {string} [name=World] your name (optional) `;
+
 
 
 // out(parser(body2, {}))
-const result = parser(body, { mdDescriptionTag: 'description', mdFunctionNameTag: 'name', inputLooseTags: true, trim: false, wrangl: true, wrangl2: true })
+const result = parser(b3, { mdDescriptionTag: 'description', mdFunctionNameTag: 'name', inputLooseTags: true, trim: false, wrangl: true, wrangl2: true })
 // out(result)
-out(JSON.stringify(result.blocks[0].tags, null, 4))
+// out(JSON.stringify(result.blocks[0].tags, null, 4))

@@ -277,11 +277,23 @@ module.exports = function parse(source, opts = {}) {
       //first word of comment is app name
       let name = source.split(/\s+/)[0];
       source = source.replace(name, '');
+      // alert('hi')
 
       //now get first sentence - make it the synopsis
       // out('sentenceSplitter.split(source.trim())')
       // out(sentenceSplitter.split(source.trim()))
       let synopsis = sentenceSplitter.split(source.trim())[0].raw
+
+      let splitSyn = synopsis.split(/\s+/g);
+
+      let invalidPart = splitSyn.find(s => s.trim().startsWith('@'));
+      if (invalidPart) {
+        synopsis = synopsis.split(invalidPart)[0].trim();
+      }
+
+      // out("synopsis from comment-parser:")
+      // out(synopsis);
+      // out('----')
       if (synopsis.trim()[0] !== '@') {
         source = '@description ' + source;
         source = `@synopsis ${synopsis}\n` + source;
