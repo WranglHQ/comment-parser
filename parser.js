@@ -282,8 +282,10 @@ module.exports = function parse(source, opts = {}) {
       // out('sentenceSplitter.split(source.trim())')
       // out(sentenceSplitter.split(source.trim()))
       let synopsis = sentenceSplitter.split(source.trim())[0].raw
-      source = '@description ' + source;
-      source = `@synopsis ${synopsis}\n` + source;
+      if (synopsis.trim()[0] !== '@') {
+        source = '@description ' + source;
+        source = `@synopsis ${synopsis}\n` + source;
+      }
       source = `@name ${name}\n` + source;
 
     }
