@@ -1,7 +1,7 @@
 {
   "name": "comment-parser",
   "version": "0.0.1",
-  "description": "Generic JSDoc-like comment parser. UPDATED BY STUART THIS IS TRASH NOW WHAT A NIGHTMARE",
+  "description": "Generic JSDoc-like comment parser. UPDATED BY STUART THIS IS TRASH NOW WHAT A NIGHTMARE. use commit hash to install",
   "main": "index.js",
   "types": "index.d.ts",
   "directories": {
